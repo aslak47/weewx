@@ -29,6 +29,10 @@
         <td class="label">$obs.label.wind</td>
         <td class="data">$current.windSpeed $current.windDir.ordinal_compass ($current.windDir)</td>
       </tr>
+      <tr>
+        <td class="label">$obs.label.windGust</td>
+        <td class="data">$current.windGust $current.windGustDir.ordinal_compass ($current.windGustDir)</td>
+      </tr>
     #elif $x == 'rain'
       <tr>
         <td class="label">$gettext("Rain Today")</td>
