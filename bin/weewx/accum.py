@@ -42,6 +42,8 @@ log = logging.getLogger(__name__)
 
 DEFAULTS_INI = """
 [Accumulator]
+    [[consBatteryVoltage]]
+        extractor = last
     [[dateTime]]
         adder = noop
     [[dayET]]
@@ -63,6 +65,8 @@ DEFAULTS_INI = """
     [[stormRain]]
         extractor = last
     [[totalRain]]
+        extractor = last
+    [[txBatteryStatus]]
         extractor = last
     [[usUnits]]
         adder = check_units
