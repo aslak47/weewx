@@ -1,3 +1,8 @@
+## 5.0.1
+
+- mw how to provide output from redhat sriptlets without adding noise to yum
+    or dnf output?
+
 ## Testing
 
 - mw convert to pytest

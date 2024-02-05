@@ -106,6 +106,8 @@ def setup(process_name, config_dict=None):
     if config_dict:
         log_config.merge(config_dict)
         weewx_root = config_dict.get("WEEWX_ROOT")
+        # Set weewx.debug as necessary:
+        weewx.debug = int(config_dict.get('debug', 0))
     else:
         weewx_root = None
 

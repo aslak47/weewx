@@ -13,23 +13,24 @@ install Python 3 then [install WeeWX using pip](pip.md).
 The first time you install WeeWX, you must configure `yum` so that it will
 trust weewx.com, and know where to find the WeeWX releases.
 
-1. Tell your system to trust weewx.com:
+1.  Configure `yum` to use `epel-release`, since some of the Python modules
+    required by WeeWX are in that respository.
+    ```{.shell .copy}
+    sudo dnf config-manager --set-enabled crb
+    sudo dnf -y install epel-release
+    ```
+
+2. Tell your system to trust weewx.com:
 
     ```{.shell .copy}
     sudo rpm --import https://weewx.com/keys.html
     ```
 
-2. Tell `yum` where to find the WeeWX repository.
+3. Tell `yum` where to find the WeeWX repository.
 
     ```{.shell .copy}
     curl -s https://weewx.com/yum/weewx.repo | \
         sudo tee /etc/yum.repos.d/weewx.repo
-    ```
-    If you are using Redhat 8, you must also configure `yum` to use
-    `epel-release`, since some of the Python modules are in that respository.
-    ```{.shell .copy}
-    sudo dnf config-manager --set-enabled crb
-    sudo dnf -y install epel-release
     ```
 
 !!! Note
@@ -86,9 +87,9 @@ To switch from the `Simulator` to real hardware, reconfigure the driver.
 # Stop the daemon
 sudo systemctl stop weewx
 # Reconfigure to use your hardware
-sudo weectl station reconfigure
+weectl station reconfigure
 # Delete the old database
-sudo rm /var/lib/weewx/weewx.sdb
+rm /var/lib/weewx/weewx.sdb
 # Start the daemon:
 sudo systemctl start weewx
 ```
@@ -100,7 +101,7 @@ To enable uploads, or to enable other reports, modify the configuration file
 `/etc/weewx/weewx.conf` using any text editor such as `nano`:
 
 ```{.shell .copy}
-sudo nano /etc/weewx/weewx.conf
+nano /etc/weewx/weewx.conf
 ```
 
 The reference
@@ -116,14 +117,6 @@ utility](../utilities/weectl-extension.md).
 WeeWX must be restarted for the changes to take effect.
 ```{.shell .copy}
 sudo systemctl restart weewx
-```
-
-If you plan to do a lot of customization, consider putting yourself into the
-`weewx` group.  When you are in the `weewx` group, you can do many things
-without having to `sudo`, including modifying the WeeWX configuration and
-installing extensions.
-```{.shell .copy}
-sudo usermod -aG weewx $USER
 ```
 
 
@@ -169,5 +162,8 @@ sudo yum remove weewx
 sudo rm -r /var/www/html/weewx
 sudo rm -r /var/lib/weewx
 sudo rm -r /etc/weewx
+sudo rm /etc/default/weewx
 sudo userdel weewx
+sudo gpasswd -d $USER weewx
+sudo groupdel weewx
 ```

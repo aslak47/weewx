@@ -1,6 +1,34 @@
 WeeWX change history
 --------------------
 
+### 5.0.1 02/04/2024
+
+Include backwards compatible reference to `weewx.UnknownType`.
+
+Fix problem with installing extensions into installations that used V4 config
+files that were installed by a package installer.
+
+Fix problem with `weectl device` when using drivers that were installed 
+using the extension installer. Fixes issue #918.
+
+Fix problem that prevented daily summaries from being rebuilt if they had been
+modified by using `weectl database drop-columns`.
+
+Allow the use of the tilde (`~`) prefix with `--config` options.
+
+Fix problem that prevented debug statements from being logged.
+
+Minor corrections to the Norwegian translations. Thanks to user Aslak!
+PR #919.
+
+Change Chinese language code to `zh`. Fixes issue #912.
+
+Fix bug in redhat/suse scriptlet that incorrectly substituted `{weewx}`
+instead of `weewx` in the udev rules file.
+
+In the redhat/suse installers, use `/var/lib/weewx` as `HOME` for user `weewx`.
+
+
 ### 5.0.0 01/14/2024
 
 Python 2.7 is no longer supported. You must have Python 3.6 (introduced

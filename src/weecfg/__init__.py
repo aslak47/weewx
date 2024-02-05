@@ -43,29 +43,27 @@ else:
     DEFAULT_LOCATIONS = [default_weewx_root, '/etc/weewx', '/home/weewx']
 
 
-def find_file(file_path=None, args=None, locations=DEFAULT_LOCATIONS,
-              file_name='weewx.conf'):
+def find_file(file_path=None, args=None, locations=None, file_name='weewx.conf'):
     """Find and return a path to a file, looking in "the usual places."
 
     General strategy:
 
-    First, file_path is tried. If not found there, then the first element of
-    args is tried.
+    First, if file_path is specified, then it will be used.
 
-    If those fail, try a path based on where the application is running.
+    Second, if file_path was not specified, then the first element of args that does not start
+    with a switch flag ("-") will be used.
 
-    If that fails, then the list of directory locations is searched,
-    looking for a file with file name file_name.
+    If there is no such element, then the list of directory locations is searched, looking for a
+    file with file name file_name.
 
-    If after all that, the file still cannot be found, then an IOError
-    exception will be raised.
+    If after all that, the file still cannot be found, then an OSError exception will be raised.
 
     Args:
-        file_path (str|None): A candidate path to the file.
-        args (list[str]|None): command-line arguments. If the file cannot be found in file_path,
-            then the members of args will be tried.
-        locations (list[str]): A list of directories to be searched. Default is ['~/weewx-data',
-            '/etc/weewx', '/home/weewx'].
+        file_path (str|None): A path to the file. Typically, this is
+            from a --config option. None if no option was specified.
+        args (list[str]|None): command-line arguments. If file_path is None, then the first not
+            null value in args will be used.
+        locations (list[str]|None): A list of directories to be searched.
         file_name (str): The name of the file to be found. This is used
             only if the directories must be searched. Default is 'weewx.conf'.
 
@@ -73,35 +71,39 @@ def find_file(file_path=None, args=None, locations=DEFAULT_LOCATIONS,
         str: full path to the file
 
     Raises:
-        IOError: If the configuration file cannot be found, or is not a file.
+        OSError: If the configuration file cannot be found, or is not a file.
     """
 
-    # Start by searching args (if available)
+    locations = locations or DEFAULT_LOCATIONS
+
+    # If no file_path was supplied, then search args (if available):
     if file_path is None and args:
-        for i in range(len(args)):
+        for i, arg in enumerate(args):
             # Ignore empty strings and None values:
-            if not args[i]:
+            if not arg:
                 continue
-            if not args[i].startswith('-'):
-                file_path = args[i]
+            if not arg.startswith('-'):
+                file_path = arg
                 del args[i]
                 break
-
-    if file_path is None:
+    if file_path:
+        # We have a resolution. Resolve any tilde prefix:
+        file_path = os.path.expanduser(file_path)
+    else:
+        # Still don't have a resolution. Search in "the usual places."
         for directory in locations:
             # If this is a relative path, then prepend with the
             # directory this file is in:
-            if not directory.startswith('/'):
+            if not os.path.isabs(directory):
                 directory = os.path.join(os.path.dirname(__file__), directory)
             candidate = os.path.abspath(os.path.join(directory, file_name))
             if os.path.isfile(candidate):
                 return candidate
 
     if file_path is None:
-        raise IOError("Unable to find file '%s'. Tried directories %s"
-                      % (file_name, locations))
+        raise OSError(f"Unable to find file '{file_name}'. Tried directories {locations}")
     elif not os.path.isfile(file_path):
-        raise IOError("%s is not a file" % file_path)
+        raise OSError(f"{file_path} is not a file")
 
     return file_path
 
@@ -156,19 +158,23 @@ def read_config(config_path, args=None, locations=DEFAULT_LOCATIONS,
 
     # Remember where we found the config file
     config_dict['config_path'] = os.path.realpath(config_path)
-    # If there was a value for WEEWX_ROOT in the configuration file, remember it so we can
-    # restore it later.
-    if 'WEEWX_ROOT' in config_dict:
-        config_dict['WEEWX_ROOT_CONFIG'] = config_dict['WEEWX_ROOT']
 
-    # If WEEWX_ROOT is not in the configuration file, supply a default:
-    if 'WEEWX_ROOT' not in config_dict:
+    # Process WEEWX_ROOT
+    if 'WEEWX_ROOT' in config_dict:
+        # There is a value for WEEWX_ROOT. Save it.
+        config_dict['WEEWX_ROOT_CONFIG'] = config_dict['WEEWX_ROOT']
+        # Check for an older config file. If found, patch to new location
+        if config_dict['WEEWX_ROOT'] == '/':
+            config_dict['WEEWX_ROOT'] = '/etc/weewx'
+    else:
+        # No WEEWX_ROOT in the config dictionary. Supply a default.
         config_dict['WEEWX_ROOT'] = os.path.dirname(config_path)
 
-    # In case WEEWX_ROOT is a relative path, join it with the location of the config file, then
-    # convert it to an absolute path.
-    config_dict['WEEWX_ROOT'] = os.path.abspath(os.path.join(os.path.dirname(config_path),
-                                                             config_dict['WEEWX_ROOT']))
+    # If the result of all that is not an absolute path, join it with the location of the config
+    # file, which will make it into an absolute path.
+    if not os.path.abspath(config_dict['WEEWX_ROOT']):
+        config_dict['WEEWX_ROOT'] = os.path.normpath(os.path.join(os.path.dirname(config_path),
+                                                                  config_dict['WEEWX_ROOT']))
 
     return config_path, config_dict
 
@@ -475,7 +481,7 @@ def prompt_for_driver(dflt_driver=None):
     infos = get_all_driver_infos()
     keys = sorted(infos)
     dflt_idx = None
-    print("\nInstalled drivers include:")
+    print("\nChoose a driver. Installed drivers include:")
     for i, d in enumerate(keys):
         print(" %s%2d%s) %-15s %-25s %s" % (bcolors.BOLD, i, bcolors.ENDC,
                                             infos[d].get('driver_name', '?'),
@@ -483,9 +489,9 @@ def prompt_for_driver(dflt_driver=None):
         if dflt_driver == d:
             dflt_idx = i
     if dflt_idx is None:
-        msg = "choose a driver: "
+        msg = "driver: "
     else:
-        msg = f"choose a driver [{dflt_idx:d}]: "
+        msg = f"driver [{dflt_idx:d}]: "
     idx = 0
     ans = None
     while ans is None:
