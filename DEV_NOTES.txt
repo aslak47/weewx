@@ -143,12 +143,26 @@ to sign rpm packages you need .rpmmacros in your home directory:
 ~/.rpmmacros
   %_gpg_name  YOUR_NAME_HERE
 
+to sign the apt Release using key 'XXX':
+  gpg -abs -u XXX -o Release.gpg Release
+
+to sign the RPM repository metadata using key 'XXX':
+  gpg -abs -u XXX -o repomd.xml.asc repomd.xml
+
 to generate gpg key used for signing packages:
   gpg --gen-key
   gpg --list-keys
+  gpg --list-secret-keys
 
 to export the text version of a public key:
-  gpg --export -a "YOUR_NAME_HERE" > username.gpg.key
+  gpg --export --armor > username.gpg.key
+
+list keys known by rpm:
+  rpm -q --gpg-pubkey
+  rpm -q --gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n'
+
+delete keys known by rpm:
+  rpm -e gpg-pubkey-XXXXX
 
 Install using pip
   make pypi-package
@@ -305,8 +319,11 @@ there are multiple changelogs:
   pkg/changelog.el - changes to the redhat packaging
   pkg/changelog.suse - changes to the suse packaging
 
-when signing, gpg info must match the name and email in the latest package
+when signing RPMs, gpg info must match the name and email in the latest package
 changelog entry.
+
+when signing apt Release using aptly, beware that aptly uses the first gpg key
+that it finds.  that might not be what you want.
 
 the debian changelog *must* have a version number that matches the app version.
 the redhat package will build if the version numbers do not match.  use the
@@ -326,7 +343,7 @@ than a tight coupling to the operating system's python as an error and refuse
 to accept it.  however, the bsd platforms prefer this as the shebang, and the
 other approach fails on bsd.  macos uses something else.
 
-since weewx5 supports any python 3.7+. older weewx supports python 2.7 and any
+since weewx5 supports any python 3.6+, older weewx supports python 2.7 and any
 python 3.5+, weewx does not have to be tightly coupled to any specific python
 installation on the system.
 
@@ -344,6 +361,12 @@ this is particularly helpful when running weewx directly from source in a git
 clone, it also works in the deb/rpm installs where the python is managed
 separately from the system's python, as well as the non-linux, non-pip
 installations.
+
+unfortunately, this can cause problems during an installation.  if the pre/post
+install scripts invoke /usr/bin/weectl instead of the python code directly,
+they can end up getting python2 or a python3 that does not have the right
+modules installed.  so maintainer scripts and scriptlets must ensure that they
+use a known-working python.
 
 
 signing packages --------------------------------------------------------------
@@ -368,6 +391,14 @@ re-sign the repository; there is no need touch the individual .deb files.
 Signing is controlled by the -us and -uc options to dpkg-build.  If you do not
 specify those options, then dpkg-build will try to sign the .dsc, .buildinfo,
 and .changes files.  The .deb itself is not signed.
+
+SUSE wants you to sign the RPMs as well as the repository metadata.  The meta
+data are in repomd.xml, and a fully signed repository must include the files
+repomd.xml.asc and repomd.xml.key.  So although it is possible to use one key
+for the meta data and different keys for the RPMs, it is probably best to sign
+with a single, shared key.
+
+On SUSE, zypper keeps the repo information in a local cache /var/cache/zypp/raw
 
 
 unit tests --------------------------------------------------------------------
