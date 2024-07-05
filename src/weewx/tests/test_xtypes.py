@@ -16,9 +16,9 @@ import configobj
 import gen_fake_data
 import weeutil.logger
 import weeutil.weeutil
-import weewx.units
+import weewx.manager
 import weewx.xtypes
-from weewx.units import ValueTuple
+import misc
 
 weewx.debug = 1
 
@@ -44,7 +44,7 @@ config_path = os.path.join(my_dir, "testgen.conf")
 month_timespan = weeutil.weeutil.TimeSpan(1283324400, 1285916400)
 
 
-class Common(object):
+class Common:
 
     def setUp(self):
         global config_path
@@ -64,6 +64,25 @@ class Common(object):
 
     def tearDown(self):
         pass
+
+    def test_daily_scalar(self):
+        with weewx.manager.open_manager_with_config(self.config_dict, 'wx_binding') as db_manager:
+            vt_min = weewx.xtypes.DailySummaries.get_aggregate('outTemp',
+                                                               month_timespan,
+                                                               'min',
+                                                               db_manager)
+            vt_mintime = weewx.xtypes.DailySummaries.get_aggregate('outTemp',
+                                                                   month_timespan,
+                                                                   'mintime',
+                                                                   db_manager)
+            vt_avg = weewx.xtypes.DailySummaries.get_aggregate('outTemp',
+                                                               month_timespan,
+                                                               'avg',
+                                                               db_manager)
+
+        self.assertAlmostEqual(vt_min[0], 38.922, 3)
+        self.assertAlmostEqual(vt_avg[0], 57.128, 3)
+        self.assertEqual(vt_mintime[0], 1283511600)
 
     def test_daily_vecdir(self):
         with weewx.manager.open_manager_with_config(self.config_dict, 'wx_binding') as db_manager:
@@ -119,6 +138,32 @@ class Common(object):
         self.assertAlmostEqual(vt[0], 8.13691, 5)
         self.assertEqual(vt[1], 'mile_per_hour', 'group_speed')
 
+    def test_has_data_true(self):
+        """Test has_data() with a type known to have data"""
+        with weewx.manager.open_manager_with_config(self.config_dict, 'wx_binding') as db_manager:
+            result = weewx.xtypes.has_data('testTemp', month_timespan, db_manager)
+            self.assertTrue(result)
+
+    def test_has_data_false(self):
+        """Test has_data() with a type that is known, but cannot be calculated"""
+        with weewx.manager.open_manager_with_config(self.config_dict, 'wx_binding') as db_manager:
+            result = weewx.xtypes.has_data('fooTemp', month_timespan, db_manager)
+            self.assertFalse(result)
+
+    def test_has_data_unknown(self):
+        """Test has_data() with a type that is not known"""
+        with weewx.manager.open_manager_with_config(self.config_dict, 'wx_binding') as db_manager:
+            result = weewx.xtypes.has_data('otherTemp', month_timespan, db_manager)
+            self.assertFalse(result)
+
+    def test_get_aggregate_none(self):
+        """Test get_aggregate() with a type that is known, but cannot be calculated"""
+        with weewx.manager.open_manager_with_config(self.config_dict, 'wx_binding') as db_manager:
+            vt = weewx.xtypes.get_aggregate('fooTemp', month_timespan, 'mintime', db_manager)
+            self.assertIsNone(vt[0])
+            self.assertEqual(vt[1], 'unix_epoch')
+            self.assertEqual(vt[2], 'group_time')
+
 
 class TestSqlite(Common, unittest.TestCase):
 
@@ -144,12 +189,5 @@ class TestMySQL(Common, unittest.TestCase):
         super().setUp()
 
 
-def suite():
-    tests = ['test_daily_vecdir', 'test_daily_vecavg',
-             'test_archive_table_vecdir', 'test_archive_table_vecavg',
-             'test_archive_table_long_vecdir', 'test_archive_table_long_vecavg']
-    return unittest.TestSuite(list(map(TestSqlite, tests)) + list(map(TestMySQL, tests)))
-
-
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=1).run(suite())
+    unittest.main()

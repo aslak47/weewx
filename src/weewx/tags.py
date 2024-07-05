@@ -19,7 +19,7 @@ IGNORE_ATTR = {'mro', 'im_func', 'func_code', '__func__', '__code__', '__init__'
 #                    Class TimeBinder
 # ===============================================================================
 
-class TimeBinder(object):
+class TimeBinder:
     """Binds to a specific time. Can be queried for time attributes, such as month.
 
     When a time period is given as an attribute to it, such as obj.month, the next item in the
@@ -143,7 +143,7 @@ class TimeBinder(object):
 #                    Class TimespanBinder
 # ===============================================================================
 
-class TimespanBinder(object):
+class TimespanBinder:
     """Holds a binding between a database and a timespan.
 
     This class is the next class in the chain of helper classes.
@@ -302,7 +302,7 @@ class TimespanBinder(object):
 #                    Class ObservationBinder
 # ===============================================================================
 
-class ObservationBinder(object):
+class ObservationBinder:
     """This is the next class in the chain of helper classes. It binds the
     database, a time period, and an observation type all together.
 
@@ -378,15 +378,9 @@ class ObservationBinder(object):
 
     @property
     def has_data(self):
+        """Check to see if there is any non-null data in the aggregation interval"""
         db_manager = self.db_lookup(self.data_binding)
-        # First see if the type exists in the database.
-        if db_manager.exists(self.obs_type):
-            # Yes. Is it non-null?
-            val = bool(weewx.xtypes.get_aggregate(self.obs_type, self.timespan,
-                                                  'not_null', db_manager)[0])
-        else:
-            # Nope. Try the xtypes system.
-            val = weewx.xtypes.has_data(self.obs_type, self.timespan, db_manager)
+        val = weewx.xtypes.has_data(self.obs_type, self.timespan, db_manager)
         return val
 
     def series(self, aggregate_type=None,
@@ -453,7 +447,7 @@ class ObservationBinder(object):
 #                             Class AggTypeBinder
 # ===============================================================================
 
-class AggTypeBinder(object):
+class AggTypeBinder:
     """This is the final class in the chain of helper classes. It binds everything needed
     for a query."""
 
@@ -520,7 +514,7 @@ class AggTypeBinder(object):
 #                             Class RecordBinder
 # ===============================================================================
 
-class RecordBinder(object):
+class RecordBinder:
 
     def __init__(self, db_lookup, report_time,
                  formatter=None, converter=None,
@@ -550,7 +544,7 @@ class RecordBinder(object):
 #                             Class CurrentObj
 # ===============================================================================
 
-class CurrentObj(object):
+class CurrentObj:
     """Helper class for the "Current" record. Hits the database lazily.
 
     This class allows tags such as:
@@ -590,22 +584,25 @@ class CurrentObj(object):
             except weewx.UnknownBinding:
                 # Don't recognize the binding.
                 raise AttributeError(self.data_binding)
+
+            # Get the record for this timestamp from the database
+            record = db_manager.getRecord(self.current_time, max_delta=self.max_delta)
+            # If there was no record at that timestamp, it will be None. If there was a record,
+            # check to see if the type is in it.
+            if not record or obs_type in record:
+                # If there was no record, then the value of the ValueTuple will be None.
+                # Otherwise, it will be value stored in the database.
+                vt = weewx.units.as_value_tuple(record, obs_type)
             else:
-                # Get the record for this timestamp from the database
-                record = db_manager.getRecord(self.current_time, max_delta=self.max_delta)
-                # If there was no record at that timestamp, it will be None. If there was a record,
-                # check to see if the type is in it.
-                if not record or obs_type in record:
-                    # If there was no record, then the value of the ValueTuple will be None.
-                    # Otherwise, it will be value stored in the database.
-                    vt = weewx.units.as_value_tuple(record, obs_type)
-                else:
-                    # Couldn't get the value out of the record. Try the XTypes system.
-                    try:
-                        vt = weewx.xtypes.get_scalar(obs_type, self.record, db_manager)
-                    except (weewx.UnknownType, weewx.CannotCalculate):
-                        # Nothing seems to be working. It's an unknown type.
-                        vt = weewx.units.UnknownObsType(obs_type)
+                # Couldn't get the value out of the record. Try the XTypes system.
+                try:
+                    vt = weewx.xtypes.get_scalar(obs_type, record, db_manager)
+                except weewx.CannotCalculate:
+                    u, g = weewx.units.getStandardUnitType(db_manager.std_unit_system, obs_type)
+                    vt = ValueTuple(None, u, g)
+                except weewx.UnknownType:
+                    # Nothing seems to be working. It's an unknown type.
+                    vt = weewx.units.UnknownObsType(obs_type)
 
         # Finally, return a ValueHelper
         return weewx.units.ValueHelper(vt, 'current', self.formatter, self.converter)
@@ -615,7 +612,7 @@ class CurrentObj(object):
 #                             Class TrendObj
 # ===============================================================================
 
-class TrendObj(object):
+class TrendObj:
     """Helper class that calculates trends.
 
     This class allows tags such as:

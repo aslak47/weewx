@@ -111,7 +111,7 @@ from weeutil.weeutil import to_int, to_float, to_bool, timestamp_to_string, to_s
 log = logging.getLogger(__name__)
 
 
-class FailedPost(IOError):
+class FailedPost(Exception):
     """Raised when a post fails, and is unlikely to succeed if retried."""
 
 
@@ -687,7 +687,7 @@ class StdWunderground(StdRESTful):
         self.archive_queue.put(event.record)
 
 
-class CachedValues(object):
+class CachedValues:
     """Dictionary of value-timestamp pairs.  Each timestamp indicates when the
     corresponding value was last updated."""
 

@@ -8,6 +8,7 @@
 
 import locale
 import logging
+import os
 import os.path
 import shutil
 import sys
@@ -27,6 +28,10 @@ import weewx.reportengine
 import weewx.station
 import weewx.units
 import weewx.wxxtypes
+import weewx.xtypes
+
+# Do not delete the following line. The module is used by an underlying xtype
+import misc
 
 weewx.debug = 1
 
@@ -37,9 +42,8 @@ weeutil.logger.setup('weetest_templates')
 os.environ['TZ'] = 'America/Los_Angeles'
 time.tzset()
 
-# This will use the locale specified by the environment variable 'LANG'
-# Other options are possible. See:
-# http://docs.python.org/2/library/locale.html#locale.setlocale
+# Explicitly set LANG to the US locale. Some of the tests require it.
+os.environ['LANG'] = "us_US.utf8"
 locale.setlocale(locale.LC_ALL, '')
 
 # Find the configuration file. It's assumed to be in the same directory as me, so first figure
@@ -72,6 +76,7 @@ weewx.accum.initialize(config_dict)
 # These tests also test the examples in the 'example' subdirectory.
 # Patch PYTHONPATH to find them.
 import weewx_data
+
 example_dir = os.path.normpath(os.path.join(os.path.dirname(weewx_data.__file__),
                                             './examples'))
 sys.path.append(os.path.join(example_dir, './colorize'))
@@ -88,7 +93,7 @@ colorize_3.Colorize.colorize_3 = colorize_3.Colorize.colorize
 
 
 # We will be testing the ability to extend the unit system, so set that up first:
-class ExtraUnits(object):
+class ExtraUnits:
     def __getitem__(self, obs_type):
         if obs_type.endswith('Temp'):
             # Anything that ends with "Temp" is assumed to be in group_temperature
@@ -115,7 +120,7 @@ weewx.units.default_unit_format_dict["amp"] = "%.1f"
 weewx.units.default_unit_label_dict["amp"] = " A"
 
 
-class Common(object):
+class Common:
 
     def setUp(self):
         global config_dict

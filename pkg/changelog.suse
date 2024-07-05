@@ -1,3 +1,18 @@
+* Thu Jul 04 2024 Matthew Wall <mwall.weewx@gmail.com> - 5.1.0-1
+- new upstream release
+* Thu Jul 04 2024 Matthew Wall <mwall.weewx@gmail.com> - 5.1.0b6-1
+- new upstream release
+* Wed Jul 04 2024 Matthew Wall <mwall.weewx@gmail.com> - 5.1.0b5-2
+- fix bug in the instance count
+- ignore systemd presets
+* Wed Jul 03 2024 Matthew Wall <mwall.weewx@gmail.com> - 5.1.0b5-1
+- new upstream release
+- use systemd presets
+- on upgrades, do not start weewxd unless it was previously running
+* Sat May 25 2024 Tom Keffer (Author of WeeWX) <tkeffer@gmail.com> - 5.1.0b4-1
+- Allow multiple locales
+* Sun May 05 2024 Matthew Wall <mwall.weewx@gmail.com> - 5.1.0b1-1
+- fix grep invocation for /etc/default/weewx
 * Sat Feb 10 2024 Matthew Wall <mwall.weewx@gmail.com> - 5.0.2-1
 - new upstream release
 * Sun Feb 04 2024 Matthew Wall <mwall.weewx@gmail.com> - 5.0.1-3

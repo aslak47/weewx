@@ -1,11 +1,17 @@
 ## Future
 
-- mw how to provide output from redhat sriptlets without adding noise to yum
-    or dnf output?
 - mw or tk: Look into unifying the two versions of the systemd weewx service
   files.
-- mw ensure that maintainer scripts use a known working python, not just what
-    might be defined in /usr/bin/weectl
+- mw for upgrades (and new?), get HTML_ROOT from the config file to determine
+   where to chown/chmod
+- mw respect the state/masking of weewx unit
+- mw ensure clean migration of weewx-multi
+- mw be sure to stop/start all existing weewxd processes during upgrade
+- mw respect presets?
+- mw 'systemctl enable weewx@ a b c'
+- mw remove nologin from weewx user account so that 'su weewx' is possible
+- mw emit user/group in weewx startup log message
+
 
 ## Testing
 
