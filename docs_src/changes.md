@@ -1,6 +1,65 @@
 WeeWX change history
 --------------------
 
+### 5.2.0 10/05/2025
+
+Now require Python 3.7 or greater.
+
+Added support for WOW-BE. PR [#1014](https://github.com/weewx/weewx/pull/1014).
+Fixes issue [#1013](https://github.com/weewx/weewx/issues/1013). Thanks to user
+John!
+
+Module `schema` is now under module `weewx. This lessens pollution of the Python
+namespace. Addresses [Issue #993](https://github.com/weewx/weewx/issues/993).
+
+The WeeWX Almanac is now extensible, allowing other astronomy packages to be
+used besides `pyephem`. In particular, a WeeWX extension that uses the
+[Skyfield](https://rhodesmill.org/skyfield/) package is available and can be
+installed. See [Issue #981](https://github.com/weewx/weewx/issues/981) and [PR
+#988](https://github.com/weewx/weewx/pull/988). Thanks to user Johanna!
+
+Fix LOGNAME bug in the weewx-multi sysV script.  Thanks to Glenn McKechnie.
+
+Added `illuminance` to the `wview_extended` schema. See [Issue
+#992](https://github.com/weewx/weewx/issues/991) and [PR
+#992](https://github.com/weewx/weewx/pull/992/files). Thanks to user Jeremy!
+
+Fix typo that causes phantom values of `soilMoist3` to appear with VantageVue
+stations.
+
+Fix bug that prevented relative paths to the config file from working.
+
+Allow simple Python objects to be used as an argument to `$jsonize()`.
+
+Adjust exclusion of top-level files in wheel creation to meet poetry
+norms and to be consistent across poetry-core versions.  Fixes issue
+[#993](https://github.com/weewx/weewx/issues/993), in part.
+
+Fix problem that prevented cached values of first and last timestamp from
+being set. [PR #999](https://github.com/weewx/weewx/pull/999). Thanks to user
+Rich Bell!
+
+Fix problem in `Standard` skin if `Select Month` was literally selected in drop
+down list. [PR #1002](https://github.com/weewx/weewx/pull/1002). Thanks to user
+Ben Cotton!
+
+In the Cumulus import code, the prefix `cur_` is used to signify a current value
+for most observation types. However, there was one exception: `curr_in_temp`.
+The utility and documentation have been changed to use `cur_in_temp` (one
+'`r`'), making all types consistent. Fixes [Issue
+#1006](https://github.com/weewx/weewx/issues/1006).
+
+Fix a problem caused by an assumption that delta times are always in seconds.
+Fixes issue [Issue #1009](https://github.com/weewx/weewx/issues/1009).
+
+Fix bug that prevented arbitrary types from being used with `weectl database
+add-column`. Fixes issue [Issue
+#1007](https://github.com/weewx/weewx/issues/1007).
+
+Fix bug that prevented MySQL and MariaDB versions greater than 10.0 from
+working. Fixes issue [Issue #1010](https://github.com/weewx/weewx/issues/1010).
+
+
 ### 5.1.0 07/04/2024
 
 If option `lang` is a valid locale, then it will be used to change locale as
@@ -30,27 +89,28 @@ calculated. Thanks to Rich Bell! PR
 [#929](https://github.com/weewx/weewx/issues/929).
 
 Allow calculation of xtype aggregate with missing constituents.
-Related to PR [#929](https://github.com/weewx/weewx/issues/).
+Related to PR [#929](https://github.com/weewx/weewx/issues/929).
 
 Fix bug in tag `$tag.obstype` where `obstype` is an XType that cannot be
-calculated. Related to PR [#929](https://github.com/weewx/weewx/issues/).
+calculated. Related to PR [#929](https://github.com/weewx/weewx/issues/929).
 
 Fix bug that caused the `loop_on_init` setting in `weewx.conf` to be ignored.
-PR #935.
+PR [#935](https://github.com/weewx/weewx/issues/935).
 
 Reinstate file `weeutil/timediff.py`. It's not used in WeeWX, but it is used
 by some extensions.
 
-Fixed bug in station config where config_units would fail if there was no
-Defaults section specified in StdReport.
+Fixed bug in station config where `config_units()` would fail if there was no
+`[[Defaults]]` section specified in `[StdReport]`.
 
-Use lower-case for the product and vendor codes in udev rules. Fixes issue #949.
+Use lower-case for the product and vendor codes in udev rules. Fixes issue 
+[#949](https://github.com/weewx/weewx/issues/949).
 
 Do not make group changes if identity of user doing the install cannot be
-determined. PR #952
+determined. PR [#952](https://github.com/weewx/weewx/issues/952).
 
 For deb/rpm installs, set permissions on the configuration file to be not
-world-readable. PR #948
+world-readable. PR [#948](https://github.com/weewx/weewx/issues/948).
 
 
 ### 5.0.2 02/10/2024

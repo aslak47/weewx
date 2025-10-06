@@ -28,8 +28,6 @@ WEEWX_HTMLDIR="${WEEWX_HTMLDIR:-/var/www/html/weewx}"
 WEEWX_USERDIR=/etc/weewx/bin/user
 WEEWX_INSTANCES="${WEEWX_INSTANCES:-weewx}"
 
-is_num() { case ${1#[-]} in '' | . | *[!0-9.]* | *.*.* ) return 1;; esac }
-
 # insert the driver and stanza into the configuration file
 insert_driver() {
     if [ ! -f $cfgfile ]; then
@@ -166,8 +164,8 @@ install_weewxconf() {
     db_get weewx/latlon
     lat=$(echo $RET | cut -d, -f1 | sed 's/^ //g' | sed 's/ $//g')
     lon=$(echo $RET | cut -d, -f2 | sed 's/^ //g' | sed 's/ $//g')
-    if [ ! is_num $lat ]; then lat=0.0; fi
-    if [ ! is_num $lon ]; then lon=0.0; fi
+    if [ "$lat" = "" ]; then lat=0.0; fi
+    if [ "$lon" = "" ]; then lon=0.0; fi
 
     db_get weewx/altitude
     altitude=$(echo $RET | cut -d, -f1 | sed 's/^ //g' | sed 's/ $//g')
@@ -514,7 +512,7 @@ stop_old_weewxd() {
 
 # see how many instances of weewxd are running
 count_instances() {
-    NUM_INSTANCES=$(ps ax | grep -c [wee]wxd)
+    NUM_INSTANCES=$(ps ax | grep weewxd | egrep -v grep | wc -l)
     echo $NUM_INSTANCES
 }
 
@@ -535,12 +533,13 @@ fi
 #  - multiple instances
 case "$1" in
     configure)
-	num_weewxd=1
+        num_weewxd=1
 	if [ "$2" != "" ]; then
-	    # this is an upgrade, so see if weewx is already running
-	    num_weewxd=$(count_instances)
-	    # this is an upgrade so ensure that weewxd is not running
-	    stop_old_weewxd $pid1
+            # this is an upgrade, so see if weewx is already running
+            num_weewxd=$(count_instances)
+            echo "Found $num_weewxd running instances of weewxd"
+            # this is an upgrade, so ensure that weewx is not running
+            stop_old_weewxd $pid1
 	fi
         get_user_info
         create_user
@@ -568,11 +567,8 @@ case "$1" in
         set_config_permissions
         setup_init $pid1
         enable_weewxd $pid1
-	if [ $num_weewxd -gt 0 ]; then
-	    # if this is a new install, start weewx no matter what.  if this
-	    # is an upgrade, start weewx only if it was running before.
-	    start_weewxd $pid1
-	fi
+        # always try to start weewx
+	start_weewxd $pid1
         ;;
 
     abort-remove)
