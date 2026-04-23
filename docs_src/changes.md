@@ -3,6 +3,9 @@ WeeWX change history
 
 ### 5.4.0 MM/DD/YYYY
 
+Added Catalon translation. [PR #1087](https://github.com/weewx/weewx/pull/1087).
+Thanks to user Ferran!
+
 Initialize the widgets in the Seasons skin as soon as the DOM is ready.
 
 Example `xstats.py` had nonsensical time context values. Fixed in 
