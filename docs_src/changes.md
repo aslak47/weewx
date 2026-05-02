@@ -23,6 +23,9 @@ statistics page.
 
 Fix problem with Acurite usb failures in newer kernels. [PR #1080](https://github.com/weewx/weewx/pull/1080)
 
+Allow duration notation to be used with option `x_interval`.
+
+
 ### 5.3.1 03/03/2026
 
 Get rid of parenthesized context expressions. They prevented the test suites
