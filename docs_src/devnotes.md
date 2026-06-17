@@ -60,16 +60,16 @@ To meet these goals, the following strategies were used:
   [ConfigObj](https://configobj.readthedocs.io) module, by Michael
   Foord and Nicola Larosa, was chosen to read the configuration file.
   This allows many options that might otherwise have to go in the
-  code, to be in a configuration file.
+  code to be in a configuration file.
 
 - A powerful templating engine. The
   [Cheetah](https://cheetahtemplate.org/) module was chosen for
-  generating html and other types of files from templates. Cheetah
+  generating HTML and other types of files from templates. Cheetah
   allows *search list extensions* to be defined, making it easy to
   extend WeeWX with new template tags.
 
 - Pure Python. The code base is 100% Python &mdash; no underlying C
-  libraries need be built to install WeeWX. This also means no
+  libraries need to be built in order to install WeeWX. This also means no
   Makefiles are needed.
 
 While WeeWX is nowhere near as fast at generating images and HTML as its
@@ -80,10 +80,10 @@ MHz machine where generating the 9 images used in the *Current
 Conditions* page takes just under 2 seconds (compared with 0.4 seconds
 for wview).
 
-All writes to the databases are protected by transactions. You can kill
+Transactions protect all writes to the databases. You can kill
 the program at any time without fear of corrupting the databases.
 
-The code makes ample use of exceptions to insure graceful recovery from
+The code makes ample use of exceptions to ensure graceful recovery from
 problems such as network outages. It also monitors socket and console
 timeouts, restarting whatever it was working on several times before
 giving up. In the case of an unrecoverable console error (such as the
@@ -112,7 +112,7 @@ a difference:
 
 2. In the database. Either US or Metric can be used.
 
-3. In the presentation (i.e., html and image files).
+3. In the presentation (i.e., HTML and image files).
 
 The general strategy is that measurements are converted by service
 `StdConvert` as they come off the weather station into a target
@@ -142,34 +142,32 @@ is used as the primary key in the SQL database.
 
 ## Time
 
-WeeWX stores all data in UTC (roughly, *Greenwich* or *Zulu*) time.
-However, usually one is interested in weather events in local time and
-want image and HTML generation to reflect that. Furthermore, most
-weather stations are configured in local time. This requires that many
-data times be converted back and forth between UTC and local time. To
-avoid tripping up over time zones and daylight savings time, WeeWX
-generally uses Python routines to do this conversion. Nowhere in the
-code base is there any explicit recognition of DST. Instead, its
-presence is implicit in the conversions. At times, this can cause the
-code to be relatively inefficient.
+WeeWX stores all data in Unix epoch time (roughly, *UTC*, *Greenwich* or *Zulu*)
+time. However, usually one is interested in weather events in local time and
+wants image and HTML generation to reflect that. Furthermore, most weather
+stations are configured in local time. This requires that many data times be
+converted back and forth between Unix time and local time. To avoid tripping up
+over time zones and daylight savings time, WeeWX generally uses Python routines
+to do this conversion. Nowhere in the code base is there any explicit
+recognition of DST. Instead, its presence is implicit in the conversions. At
+times, this can cause the code to be relatively inefficient.
 
-For example, if one wanted to plot something every 3 hours in UTC time,
-it would be very simple: to get the next plot point, just add 10,800 to
+For example, if one wanted to plot something every 3 hours in Unix time,
+it would be very simple: to get the next plot point, add 10,800 to
 the epoch time:
 
 ```
 next_ts = last_ts + 10800 
 ```
 
-But, if one wanted to plot something for every 3 hours *in local time*
-(that is, at 0000, 0300, 0600, etc.), despite a possible DST change in
-the middle, then things get a bit more complicated. One could modify the
-above to recognize whether a DST transition occurs sometime between
-`last_ts` and the next three hours and, if so, make the necessary
-adjustments. This is generally what `wview` does. WeeWX takes a
-different approach and converts from UTC to local, does the arithmetic,
-then converts back. This is inefficient, but bulletproof against changes
-in DST algorithms, etc.:
+But if one wanted to plot something for every 3 hours *in local time* (that is,
+at 0000, 0300, 0600, etc.), despite a possible DST change in the middle, then
+things get a bit more complicated. One could modify the above to recognize
+whether a DST transition occurs sometime between `last_ts` and the next three
+hours and, if so, make the necessary adjustments. This is generally what `wview`
+does. WeeWX takes a different approach and converts from UTC to local, does the
+arithmetic, then converts back. This is inefficient, but bulletproof against
+changes in DST algorithms, etc.:
 
 ```
 time_dt = datetime.datetime.fromtimestamp(last_ts)
@@ -188,9 +186,9 @@ times will probably be incorrect.
 ## Archive records
 
 An archive record's timestamp, whether in software or in the database,
-represents the *end time* of the record. For example, a record
-timestamped 05-Feb-2016 09:35, includes data from an instant after
-09:30, through 09:35. Another way to think of it is that it is exclusive
+represents the *end time* of the record. For example, with a 5-minute archive
+time, a record timestamped 05-Feb-2016 09:35 includes data from an instant
+after 09:30, through 09:35. Another way to think of it is that it is exclusive
 on the left, inclusive on the right. Schematically:
 
 ```
@@ -198,7 +196,7 @@ on the left, inclusive on the right. Schematically:
 ```
 
 Database queries should reflect this. For example, to find the maximum
-temperature for the hour between timestamps 1454691600 and 1454695200,
+temperature for the hour between timestamps `1454691600` and `1454695200`,
 the query would be:
 
 ```
@@ -206,12 +204,12 @@ SELECT MAX(outTemp) FROM archive
   WHERE dateTime > 1454691600 and dateTime <= 1454695200;
 ```
 
-This ensures that the record at the beginning of the hour (1454691600)
+This ensures that the record at the beginning of the hour (`1454691600`)
 does not get included (it belongs to the previous hour), while the
-record at the end of the hour (1454695200) does.
+record at the end of the hour (`1454695200`) does.
 
-One must be constantly be aware of this convention when working with
-timestamped data records.
+One must be constantly aware of this convention when working with timestamped
+data records.
 
 Better yet, if you need this kind of information, use an
 [xtypes](https://github.com/weewx/weewx/wiki/WeeWX-V4-user-defined-types)
@@ -224,7 +222,7 @@ max_temp = weewx.xtypes.get_aggregate('outTemp',
                                       db_manager)
 ```
 
-It will not only make sure the limits of the query are correct, but will
+It will not only make sure the limits of the query are correct but will
 also decide whether the daily summary optimization can be used
 ([details below](#daily-summaries)). If not, it will use the regular
 archive table.
@@ -314,7 +312,7 @@ This is what the table columns mean:
   </tr>
   <tr>
     <td class="first_col code">dateTime</td>
-    <td>The time of the start of day in <a href="https://en.wikipedia.org/wiki/Unix_time">unix epoch time</a>. This is the <em>primary key</em> in the database. It must be unique, and it cannot be null.</td>
+    <td>The time of the start of day in <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch time</a>. This is the <em>primary key</em> in the database. It must be unique, and it cannot be null.</td>
   </tr>
   <tr>
     <td class="first_col code">min</td>
@@ -322,7 +320,7 @@ This is what the table columns mean:
   </tr>
   <tr>
     <td class="first_col code">mintime</td>
-    <td>The time in unix epoch time of the minimum temperature.</td>
+    <td>The time in Unix epoch time of the minimum temperature.</td>
   </tr>
   <tr>
     <td class="first_col code">max</td>
@@ -330,7 +328,7 @@ This is what the table columns mean:
   </tr>
   <tr>
     <td class="first_col code">maxtime</td>
-    <td>The time in unix epoch time of the maximum temperature.</td>
+    <td>The time in Unix epoch time of the maximum temperature.</td>
   </tr>
   <tr>
     <td class="first_col code">sum</td>
@@ -363,7 +361,7 @@ Now consider an extensive variable such as `rain`. The total
 rainfall for the day will be given by the field `sum`. So,
 calculating the total rainfall for the year can be done by scanning and
 summing only 365 records, instead of potentially tens, or even hundreds,
-of thousands of records. This results in a dramatic speed up for report
+of thousands of records. This results in a dramatic speed-up for report
 generation, particularly on slower machines such as the Raspberry Pi,
 working off an SD card.
 
@@ -486,7 +484,7 @@ they are not used consistently.
   <tr>
     <td class="code">_ts</td>
     <td class="code">first_ts</td>
-    <td>Variable is a timestamp in <a href="https://en.wikipedia.org/wiki/Unix_time">unix epoch time</a>.</td>
+    <td>Variable is a timestamp in <a href="https://en.wikipedia.org/wiki/Unix_time">Unix epoch time</a>.</td>
   </tr>
   <tr>
     <td class="code">_dt</td>
@@ -564,12 +562,28 @@ The code that exercises the code is located in a directory called `tests` in
 each of the component directories.
 
 Prerequisites for running the core tests include:
-  - python 3.7
-  - python-usb
-  - pyephem
 
-Unit tests should put transient files in `/var/tmp/weewx_test` - do not write
-to the source tree.
+    MySQL >= 8.0
+    Python >= 3.7
+    configobj>=5.0
+    cryptography
+    CT3>=3.1
+    ephem>=4.1
+    Pillow>=5.2
+    PyMySQL
+    pyserial>=3.4
+    pytest
+    pyusb>=1.0.2
+
+When using a pip virtual environment, these can easily be installed into the
+environment by using the file `dev_requirements.txt` located in the repository:
+
+    pip install -r dev_requirements.txt
+
+MySQL must be set up with specific users with specific permissions.  This can be
+done by a `make` target:
+
+    make test-setup
 
 To run all unit tests (do not run this as root!):
 ```
@@ -581,10 +595,8 @@ To clean up after running tests:
 make test-clean
 ```
 
-To set up mysql server with user and permissions for testing:
-```
-make test-setup
-```
+If you add additional unit tests, they should put any transient files in
+`/var/tmp/weewx-test` &mdash; do not write to the source tree.
 
 
 ## Git work flow
@@ -600,15 +612,15 @@ extensive and helpful.
 
 We generally follow Vincent Driessen's [branching
 model](http://nvie.com/posts/a-successful-git-branching-model/). Ignore
-the complicated diagram at the beginning of the article, and just focus
+the complicated diagram at the beginning of the article and focus
 on the text. In this model, there are two key branches:
 
-- 'master'. Fixes go into this branch. We tend to use fewer
+- `master`. Fixes go into this branch. We tend to use fewer
   *hot fix* branches and, instead, just incorporate any fixes
   directly into the branch. Releases are tagged relative to this
   branch.
 
-- 'development' (called `develop` in Vince's article).
+- `development` (called `develop` in Vince's article).
   This is where new features go. Before a release, they will be merged
   into the `master` branch.
 
@@ -636,16 +648,42 @@ on this topic.
 
 ### Python
 
-[JetBrain's PyCharm](http://www.jetbrains.com/pycharm/) is exellent,
+[JetBrain's PyCharm](http://www.jetbrains.com/pycharm/) is excellent,
 and now there's a free Community Edition. It has many advanced
 features, yet is structured that you need not be exposed to them until
 you need them. Highly recommended.
 
 ### HTML and Javascript
 
-For Javascript, [JetBrain's
+For JavaScript, [JetBrain's
 WebStorm](http://www.jetbrains.com/webstorm/) is excellent, particularly
-if you will be using a framework such as Node.js or Express.js.
+if you are using a framework such as Node.js or Express.js.
+
+## Directory Structure
+- `src/weewx/`: The core WeeWX engine and services.
+- `src/weewx/drivers/`: Drivers for various weather station hardware.
+- `src/weecfg/`: Utilities for working with `configobj` configuration files.
+- `src/weeutil/`: General-purpose utility modules used across the project.
+- `src/weedb/`: Database abstraction layer.
+- `src/weeplot/`: Plotting and image generation code.
+- `docs_src/`: Source documentation in Markdown or other formats.
+
+## Testing Framework
+- **Pytest**: The project uses `pytest` as its primary testing framework.
+
+### Test Location
+- Tests are located in `tests/` subdirectories within each package:
+  - `src/weewx/tests/`
+  - `src/weeutil/tests/`
+  - `src/weecfg/tests/`
+  - `src/weewx/drivers/tests/`
+
+### Testing Approach
+- **Unit Tests**: Most tests are unit tests targeting specific modules (e.g., `test_accum.py`, `test_units.py`).
+- **Data Driven**: Tests often use generated fake data (e.g., `gen_fake_data.py`) to simulate weather station records.
+- **Execution**: Tests can be run using `pytest` or via the `makefile` (e.g., `make test`).
+- **Regression**: The codebase includes regression tests to ensure bug fixes remain effective over time.
+
 
 ## Glossary
 
@@ -716,7 +754,7 @@ SQLite would be
   <tr>
     <td class="text_highlight">epoch time</td>
     <td>
-Sometimes referred to as &quot;unix time,&quot; or &quot;unix epoch time.&quot;
+Sometimes referred to as &quot;Unix time,&quot; or &quot;Unix epoch time.&quot;
 The number of seconds since the epoch, which is 1 Jan 1970 00:00:00 UTC. Hence,
 it always represents UTC (well... after adding a few leap seconds... but, close
 enough). This is the time used in the databases and appears as type
@@ -770,7 +808,7 @@ A complete set of units used together. Either <span class="code">US</span>,
   <tr>
     <td class="text_highlight">time stamp</td>
     <td>
-A variable in unix epoch time. Always in UTC. Variables carrying a time stamp
+A variable in Unix epoch time. Always in UTC. Variables carrying a time stamp
 usually have a suffix <span class="code">_ts</span>.
     </td>
   </tr>
