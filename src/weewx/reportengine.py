@@ -506,9 +506,10 @@ class FtpGenerator(ReportGenerator):
 
         t1 = time.time()
         try:
-            local_root = Path(self.config_dict['WEEWX_ROOT'],
-                              self.skin_dict.get('HTML_ROOT',
-                                                 self.config_dict['StdReport']['HTML_ROOT']))
+            html_root = self.skin_dict.get('HTML_ROOT')
+            if not html_root:
+                html_root = self.config_dict['StdReport']['HTML_ROOT']
+            local_root = Path(self.config_dict['WEEWX_ROOT'], html_root)
             ftp_data = weeutil.ftpupload.FtpUpload(
                 server=self.skin_dict['server'],
                 user=self.skin_dict['user'],
@@ -525,7 +526,7 @@ class FtpGenerator(ReportGenerator):
                 encoding=self.skin_dict.get('ftp_encoding', 'utf-8'),
                 ciphers=self.skin_dict.get('ciphers')
             )
-        except KeyError:
+        except (KeyError, AttributeError):
             log.debug("ftpgenerator: FTP upload not requested. Skipped.")
             return
 

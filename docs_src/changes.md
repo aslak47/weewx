@@ -1,6 +1,12 @@
 WeeWX change history
 --------------------
 
+### 5.4.1 MM/DD/YYYY
+
+Fix problem where `[StdReport]` does not include `HTML_ROOT`. Fixes 
+[Issue #1082](https://github.com/weewx/weewx/issues/1082).
+
+
 ### 5.4.0 06/16/2026
 
 Added utility `weectl rest`, which allows selective uploading to RESTful
