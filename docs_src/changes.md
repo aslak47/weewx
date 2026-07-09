@@ -6,6 +6,9 @@ WeeWX change history
 Fix problem where `[StdReport]` does not include `HTML_ROOT`. Fixes 
 [Issue #1082](https://github.com/weewx/weewx/issues/1082).
 
+Install extensions atomically, never overwrite in place. 
+[PR #1104](https://github.com/weewx/weewx/pull/1104). Thanks to user John K!
+
 
 ### 5.4.0 06/16/2026
 
