@@ -9,6 +9,8 @@ Fix problem where `[StdReport]` does not include `HTML_ROOT`. Fixes
 Install extensions atomically, never overwrite in place. 
 [PR #1104](https://github.com/weewx/weewx/pull/1104). Thanks to user John K!
 
+Substitute `station_type` if the hardware driver does not offer `hardware_name`. 
+
 
 ### 5.4.0 06/16/2026
 
