@@ -1,22 +1,27 @@
 WeeWX change history
 --------------------
 
-### 5.5.n n-Month-2026
+### 5.5.1 19-Sep-2026
 
-`weectl extension uninstall` no longer removes a configuration section that is still
-in use. A section was pruned as soon as it had no subsections left, so uninstalling
-any driver extension took all of `[Station]` with it, including the location and the
-coordinates. Fixes [Issue #1131](https://github.com/weewx/weewx/issues/1131).
+`weectl extension uninstall` no longer removes a configuration section that is
+still in use. A section was pruned as soon as it had no subsections left, so
+uninstalling any driver extension took all of `[Station]` with it, including the
+location and the coordinates. 
+Fixes [Issue #1131](https://github.com/weewx/weewx/issues/1131). 
 [PR #1132](https://github.com/weewx/weewx/pull/1132).
 
-Say so in the log when a Vantage logger returns far fewer archive records than it
-said it would, which is what corrupt logger memory looks like, and link to the fix.
+Help the user diagnose a corrupt Vantage logger. Provide a link to the fix.
 Fixes [Issue #1105](https://github.com/weewx/weewx/issues/1105).
 
-The FineOffset USB driver no longer calls `datetime.utcnow()` or
-`datetime.utcfromtimestamp()`, which Python 3.12 deprecates. Its datetimes are now
-aware UTC. Fixes [Issue #1052](https://github.com/weewx/weewx/issues/1052).
+Fixed problem where the FineOffset USB driver could not be used under Python
+3.12. [Issue #1052](https://github.com/weewx/weewx/issues/1052). 
 [PR #1117](https://github.com/weewx/weewx/pull/1117).
+
+Fixed problem that prevented WeeWX from being installed on openSUSE Leap 16.
+Unfortunately, the dependency `python3-ephem` is not available on Leap 16, so
+it must be added manually using pip. Fixes 
+[Issue #1065](https://github.com/weewx/weewx/issues/1065). 
+[PR #1121](https://github.com/weewx/weewx/pull/1121).
 
 Saving the configuration file no longer changes its mode or ownership. Under a
 package installation, `weectl extension install`, `weectl extension uninstall`,
@@ -26,6 +31,15 @@ user could no longer edit it and the passwords in it became world-readable.
 
 Removed the APRS "messaging-capable" packet flag from `restx.py`.
 [PR #1108](https://github.com/weewx/weewx/pull/1108), by `W0CHP`.
+
+Fixed problem where RESTful services would fail to start if both options
+`rtfreq` and `archive_post` were set in `[[Wunderground]]`. Also fixed problem
+where the Rapidfire mode would use the archive endpoint even if `server_url` was
+set.  [PR #1145](https://github.com/weewx/weewx/pull/1145). Thanks to user
+Robert!
+
+Added a bash completion script for `weectl`, and a script to install it.
+[PR #1110](https://github.com/weewx/weewx/pull/1110), by `evilbunny2008`.
 
 ### 5.5.0 6-Aug-2026
 
